@@ -1,3 +1,4 @@
+/** Store one answer for one assessment question. */
 export class Answer {
   /** Create a single answer record for an assessment question. */
   constructor({

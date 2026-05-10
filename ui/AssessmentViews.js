@@ -1,11 +1,5 @@
 import { createAccessButton } from "./accessButton.js";
-import {
-  ANSWER_IMAGE_SIZE,
-  NAV_BUTTON_SIZE,
-  QUESTION_IMAGE_SIZE,
-  RESULT_BUTTON_SIZE,
-  getAnswerButtonClass,
-} from "./uiClasses.js";
+import { getAnswerButtonClass } from "./uiClasses.js";
 
 const ANSWER_IMAGES = {
   0: { src: "images/happy.png", alt: "Happy" },
@@ -15,25 +9,24 @@ const ANSWER_IMAGES = {
   4: { src: "images/crying.png", alt: "Crying" },
 };
 
+/** Build DOM screens for the assessment flow. */
 export class AssessmentViews {
+  /** Render the assessment selection menu. */
   renderMenu({ assessmentIndex, onSelectAssessment }) {
     const container = document.createElement("main");
-    container.className = "w-full max-w-6xl";
+    container.className = "screen screen--wide";
 
     const title = document.createElement("h1");
-    title.className =
-      "mb-[clamp(3vh,4vh,6vh)] text-center text-3xl font-bold leading-tight";
+    title.className = "screen-title menu-title";
     title.textContent = "Choose an assessment";
     container.appendChild(title);
 
     const list = document.createElement("div");
-    list.className =
-      "mx-auto grid w-fit grid-cols-2 justify-items-center gap-[clamp(3vw,4vw,6vw)]";
+    list.className = "assessment-menu";
 
     assessmentIndex.forEach((assessmentMeta) => {
       const button = document.createElement("button");
-      button.className =
-        "mx-auto aspect-square w-[clamp(180px,24vw,320px)] cursor-pointer rounded-lg border-2 border-[#b9ddec] bg-white/85 p-[clamp(1.5vw,2vw,3vw)] text-center text-[clamp(1.25rem,2.2vw,2.25rem)] font-bold leading-tight text-[#30306f] shadow hover:border-[#0795a1] hover:bg-[#e4f6f4]";
+      button.className = "assessment-menu-button";
       button.textContent = assessmentMeta.title;
 
       const accessButton = createAccessButton(button, () => {
@@ -47,7 +40,14 @@ export class AssessmentViews {
     return container;
   }
 
-  renderAssessment({ assessment, onAnswer, onMoveQuestion, onShowResult }) {
+  /** Render the active assessment question. */
+  renderAssessment({
+    assessment,
+    onAnswer,
+    onGoHome,
+    onMoveQuestion,
+    onShowResult,
+  }) {
     const question = assessment.currentQuestion();
 
     if (!question) {
@@ -55,62 +55,71 @@ export class AssessmentViews {
     }
 
     const container = document.createElement("main");
-    container.className = "w-full max-w-6xl";
+    container.className = "screen screen--wide assessment-screen";
 
-    container.appendChild(
+    const navigationSection = document.createElement("section");
+    navigationSection.className = "assessment-nav-section";
+    navigationSection.appendChild(
       this.createAssessmentNavigation({
         assessment,
+        onGoHome,
         onMoveQuestion,
         onShowResult,
       }),
     );
+    container.appendChild(navigationSection);
+
+    const questionSection = document.createElement("section");
+    questionSection.className = "assessment-question-section";
 
     const progress = document.createElement("p");
-    progress.className = "mb-2 text-center font-bold text-[#30306f]/80";
+    progress.className = "assessment-progress";
     progress.textContent = `${assessment.questionIndex + 1} / ${
       assessment.questions.length
     }`;
-    container.appendChild(progress);
+    questionSection.appendChild(progress);
 
     const title = document.createElement("h1");
-    title.className = "mb-4 text-center text-3xl font-bold leading-tight";
+    title.className = "screen-title assessment-title";
     title.textContent = assessment.title;
-    container.appendChild(title);
+    questionSection.appendChild(title);
 
     const questionLayout = document.createElement("div");
-    questionLayout.className =
-      "mb-4 grid items-center gap-[clamp(2vw,3vw,4vw)] md:grid-cols-[minmax(0,1fr)_clamp(12vh,10vw,18vh)]";
+    questionLayout.className = "question-layout";
 
     const questionText = document.createElement("p");
-    questionText.className = "m-0 text-2xl leading-snug";
+    questionText.className = "question-text";
     questionText.textContent = question.question;
     questionLayout.appendChild(questionText);
 
     if (question.imageUrl) {
       const image = document.createElement("img");
-      image.className = `m-0 block ${QUESTION_IMAGE_SIZE} max-w-full object-contain`;
+      image.className = "question-image";
       image.src = question.imageUrl;
       image.alt = "";
       questionLayout.appendChild(image);
     }
 
-    container.appendChild(questionLayout);
+    questionSection.appendChild(questionLayout);
+    container.appendChild(questionSection);
+
+    const answerSection = document.createElement("section");
+    answerSection.className = "assessment-answer-section";
 
     const scaleDescriptions = document.createElement("div");
-    scaleDescriptions.className = "mb-2 grid grid-cols-5 gap-3";
+    scaleDescriptions.className = "scale-descriptions";
 
     getQuestionOptions(question).forEach(({ label }) => {
       const description = document.createElement("div");
-      description.className =
-        "flex min-h-10 items-end justify-center px-1 text-center text-base font-bold leading-tight text-[#30306f]/80";
+      description.className = "scale-description";
       description.textContent = label;
       scaleDescriptions.appendChild(description);
     });
 
-    container.appendChild(scaleDescriptions);
+    answerSection.appendChild(scaleDescriptions);
 
     const options = document.createElement("div");
-    options.className = "grid grid-cols-5 gap-3";
+    options.className = "answer-options";
 
     getQuestionOptions(question).forEach(({ value, label }) => {
       const isSelected = assessment.getAnswer(question.id)?.value === value;
@@ -124,14 +133,14 @@ export class AssessmentViews {
 
       if (answerImage) {
         const image = document.createElement("img");
-        image.className = `${ANSWER_IMAGE_SIZE} object-contain`;
+        image.className = "answer-image";
         image.src = answerImage.src;
         image.alt = answerImage.alt;
         button.appendChild(image);
       }
 
       const valueText = document.createElement("span");
-      valueText.className = "leading-tight";
+      valueText.className = "answer-value";
       valueText.textContent = value;
       button.appendChild(valueText);
 
@@ -142,22 +151,38 @@ export class AssessmentViews {
       );
     });
 
-    container.appendChild(options);
+    answerSection.appendChild(options);
+    container.appendChild(answerSection);
     return container;
   }
 
-  createAssessmentNavigation({ assessment, onMoveQuestion, onShowResult }) {
+  /** Render assessment navigation controls. */
+  createAssessmentNavigation({
+    assessment,
+    onGoHome,
+    onMoveQuestion,
+    onShowResult,
+  }) {
     const navigation = document.createElement("div");
-    navigation.className =
-      "mb-[clamp(4vh,5vh,7vh)] mr-[clamp(3vw,4vw,6vw)] mt-[clamp(1vh,2vh,3vh)] flex min-h-[clamp(10vh,10vw,18vh)] justify-end gap-[clamp(2vw,3vw,4vw)]";
+    navigation.className = "assessment-navigation";
 
     const isFirstQuestion = assessment.questionIndex === 0;
     const isLastQuestion =
       assessment.questionIndex === assessment.questions.length - 1;
 
+    const homeButton = document.createElement("button");
+    homeButton.className = "nav-button nav-button--icon";
+    homeButton.appendChild(createHomeIcon());
+    homeButton.setAttribute("aria-label", "Home");
+
+    const homeAccessButton = createAccessButton(homeButton, onGoHome);
+    homeAccessButton.setAttribute("access-group", "navigation");
+    homeAccessButton.setAttribute("access-order", "1");
+    navigation.appendChild(homeAccessButton);
+
     if (!isFirstQuestion) {
       const previousButton = document.createElement("button");
-      previousButton.className = `flex ${NAV_BUTTON_SIZE} cursor-pointer items-center justify-center rounded-lg border-2 border-[#b9ddec] bg-white/90 text-6xl font-bold text-[#30306f] shadow hover:border-[#0795a1] hover:bg-[#e4f6f4]`;
+      previousButton.className = "nav-button";
       previousButton.textContent = "<";
       previousButton.setAttribute("aria-label", "Previous");
 
@@ -165,13 +190,13 @@ export class AssessmentViews {
         onMoveQuestion(-1);
       });
       previousAccessButton.setAttribute("access-group", "navigation");
-      previousAccessButton.setAttribute("access-order", "1");
+      previousAccessButton.setAttribute("access-order", "2");
       navigation.appendChild(previousAccessButton);
     }
 
     if (!isLastQuestion) {
       const nextButton = document.createElement("button");
-      nextButton.className = `flex ${NAV_BUTTON_SIZE} cursor-pointer items-center justify-center rounded-lg border-2 border-[#b9ddec] bg-white/90 text-6xl font-bold text-[#30306f] shadow hover:border-[#0795a1] hover:bg-[#e4f6f4]`;
+      nextButton.className = "nav-button";
       nextButton.textContent = ">";
       nextButton.setAttribute("aria-label", "Next");
 
@@ -179,36 +204,36 @@ export class AssessmentViews {
         onMoveQuestion(1);
       });
       nextAccessButton.setAttribute("access-group", "navigation");
-      nextAccessButton.setAttribute("access-order", "2");
+      nextAccessButton.setAttribute("access-order", "3");
       navigation.appendChild(nextAccessButton);
     }
 
     if (isLastQuestion) {
       const resultButton = document.createElement("button");
-      resultButton.className = `${RESULT_BUTTON_SIZE} cursor-pointer rounded-lg border-2 border-[#0795a1] bg-[#0795a1] px-[clamp(2vw,3vw,4vw)] py-[clamp(2vh,3vh,4vh)] text-center text-3xl font-bold text-white shadow hover:bg-[#087b86]`;
+      resultButton.className = "result-button";
       resultButton.textContent = "Result";
 
       const resultAccessButton = createAccessButton(resultButton, onShowResult);
       resultAccessButton.setAttribute("access-group", "navigation");
-      resultAccessButton.setAttribute("access-order", "3");
+      resultAccessButton.setAttribute("access-order", "4");
       navigation.appendChild(resultAccessButton);
     }
 
     return navigation;
   }
 
+  /** Render the raw answer payload. */
   renderResult({ answersPayload, assessment }) {
     const container = document.createElement("main");
-    container.className = "w-full max-w-5xl";
+    container.className = "screen screen--result";
 
     const title = document.createElement("h1");
-    title.className = "mb-5 text-3xl font-bold leading-tight";
+    title.className = "screen-title result-title";
     title.textContent = "Assessment answers";
     container.appendChild(title);
 
     const payload = document.createElement("pre");
-    payload.className =
-      "m-0 overflow-auto rounded-lg border border-[#b9ddec] bg-white/80 p-4";
+    payload.className = "result-payload";
     payload.textContent = JSON.stringify(
       answersPayload ?? assessment?.toAnswerPayload() ?? {},
       null,
@@ -219,13 +244,15 @@ export class AssessmentViews {
     return container;
   }
 
+  /** Render a simple status message. */
   renderMessage(message) {
     const container = document.createElement("main");
-    container.className = "w-full max-w-3xl text-lg";
+    container.className = "screen screen--message";
     container.textContent = message;
     return container;
   }
 
+  /** Update answer button styling without replacing the screen. */
   updateAnswerSelection(root, questionId, selectedValue) {
     root
       .querySelectorAll(`[data-question-id="${questionId}"]`)
@@ -237,6 +264,7 @@ export class AssessmentViews {
   }
 }
 
+/** Return the scale options for a question. */
 function getQuestionOptions(question) {
   if (!question.scale) {
     return [];
@@ -256,4 +284,22 @@ function getQuestionOptions(question) {
   }
 
   return options;
+}
+
+/** Create the inline SVG used by the Home button. */
+function createHomeIcon() {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+
+  const roof = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  roof.setAttribute("d", "M3 10.5 12 3l9 7.5");
+  svg.appendChild(roof);
+
+  const house = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  house.setAttribute("d", "M5 10v10h5v-6h4v6h5V10");
+  svg.appendChild(house);
+
+  return svg;
 }

@@ -1,3 +1,4 @@
+/** Store question-bank data for one question. */
 export class Question {
   /** Create a question from question-bank data. */
   constructor({

@@ -2,6 +2,7 @@ import { Assessment } from "../models/Assessment.js";
 
 const DEFAULT_QUESTION_BANK_INDEX_URL = "./question-banks/index.json";
 
+/** Load assessments from configured question sources. */
 export class AssessmentRepository {
   /** Create caches and source handlers for assessment loading. */
   constructor() {

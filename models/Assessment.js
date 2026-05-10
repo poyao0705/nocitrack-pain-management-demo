@@ -1,6 +1,7 @@
 import { Answer } from "./Answer.js";
 import { Question } from "./Question.js";
 
+/** Manage questions, current position, and answer state. */
 export class Assessment {
   /** Create an assessment with question models and answer state. */
   constructor({

@@ -1,9 +1,0 @@
-@import "tailwindcss";
-
-@source "../index.html";
-@source "../app.js";
-@source "../ui/**/*.js";
-@source inline("h-[clamp(10vh,10vw,18vh)] w-[clamp(10vh,10vw,18vh)] min-h-[clamp(10vh,10vw,18vh)] min-w-[clamp(18vw,22vw,32vw)]");
-@source inline("max-h-[clamp(12vh,10vw,18vh)] w-[clamp(12vh,10vw,18vh)] h-[clamp(7vh,6vw,10vh)] w-[clamp(7vh,6vw,10vh)] min-h-[clamp(14vh,16vh,22vh)] min-h-[clamp(7vh,5vw,10vh)]");
-@source inline("gap-[clamp(1vh,1.5vh,2vh)] gap-[clamp(2vw,3vw,4vw)] px-[clamp(1vw,1.5vw,2vw)] px-[clamp(2vw,3vw,4vw)] py-[clamp(1vh,1.5vh,2vh)] py-[clamp(1vh,2vh,3vh)] py-[clamp(2vh,3vh,4vh)]");
-@source inline("mb-[clamp(4vh,5vh,7vh)] mr-[clamp(3vw,4vw,6vw)] mt-[clamp(1vh,2vh,3vh)] md:grid-cols-[minmax(0,1fr)_clamp(12vh,10vw,18vh)]");

@@ -1,6 +1,5 @@
 import { Answer } from "./models/Answer.js";
 import { AssessmentRepository } from "./services/AssessmentRepository.js";
-import { SquidlyStateStore } from "./services/SquidlyStateStore.js";
 import { AssessmentViews } from "./ui/AssessmentViews.js";
 
 const DEFAULT_SOURCE = "default_bank";
@@ -8,12 +7,12 @@ const STATE_MENU = "menu";
 const STATE_ASSESSMENT = "assessment";
 const STATE_RESULT = "result";
 
+/** Coordinate assessment state, persistence, and screen rendering. */
 class PainManagementApp {
   /** Create the app coordinator for one assessment source. */
   constructor({ source = DEFAULT_SOURCE } = {}) {
     this.source = source;
     this.assessmentRepo = new AssessmentRepository();
-    this.stateStore = new SquidlyStateStore();
     this.views = new AssessmentViews();
 
     this.state = STATE_MENU;
@@ -44,8 +43,7 @@ class PainManagementApp {
   /** Create the single render root. Screens replace this root's children. */
   createUI() {
     this.root = document.createElement("div");
-    this.root.className =
-      "flex min-h-screen items-center justify-center px-8 py-6";
+    this.root.className = "app-root";
     document.body.appendChild(this.root);
   }
 
@@ -56,7 +54,7 @@ class PainManagementApp {
 
   /** Keep local app state in sync with Squidly/Firebase values. */
   addListeners() {
-    this.stateStore.onValue("state", async (value) => {
+    SquidlyAPI.firebaseOnValue("state", async (value) => {
       if (!value) return;
 
       this.state = value;
@@ -68,7 +66,7 @@ class PainManagementApp {
       this.requestRender();
     });
 
-    this.stateStore.onValue("assessmentId", async (value) => {
+    SquidlyAPI.firebaseOnValue("assessmentId", async (value) => {
       if (!value) return;
 
       this.assessmentId = value;
@@ -80,7 +78,7 @@ class PainManagementApp {
       this.requestRender();
     });
 
-    this.stateStore.onValue("assessmentAnswers", (value) => {
+    SquidlyAPI.firebaseOnValue("assessmentAnswers", (value) => {
       if (!value) return;
 
       this.answersPayload = JSON.parse(value);
@@ -166,6 +164,9 @@ class PainManagementApp {
         onAnswer: (value) => {
           this.answerCurrentQuestion(value);
         },
+        onGoHome: () => {
+          this.returnToMenu();
+        },
         onMoveQuestion: (step) => {
           this.moveQuestion(step);
         },
@@ -229,6 +230,19 @@ class PainManagementApp {
     this.requestRender();
   }
 
+  /** Return to menu and remove any progress for the active assessment. */
+  returnToMenu() {
+    this.state = STATE_MENU;
+    this.assessmentId = null;
+    this.assessment = null;
+    this.answersPayload = null;
+
+    this.setFirebaseValue("assessmentId", "");
+    this.setFirebaseValue("assessmentAnswers", "");
+    this.setFirebaseValue("state", STATE_MENU);
+    this.requestRender();
+  }
+
   /** Persist the assessment answer payload to Firebase. */
   syncAnswersToFirebase() {
     if (!this.assessment) {
@@ -240,9 +254,9 @@ class PainManagementApp {
     this.setFirebaseValue("assessmentAnswers", JSON.stringify(payload));
   }
 
-  /** Support the Squidly API naming used across demos. */
+  /** Write one value through Squidly/Firebase. */
   setFirebaseValue(key, value) {
-    this.stateStore.setValue(key, value);
+    SquidlyAPI.firebaseSet(key, value);
   }
 }
 
