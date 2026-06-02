@@ -244,8 +244,8 @@ class MessageView extends GridLayout {
 
 class MenuView extends GridLayout {
     constructor({ assessmentIndex, onSelectAssessment }) {
-        super(4,10)
-        let title = this.add(new SvgPlus("div"), 0, [2,7])
+        super(8,10)
+        let title = this.add(new SvgPlus("div"), [0,1], [2,7])
         title.classList.add("menu-title")
         title.createChild("h1", {content: "Noci Pain Tracking"})
         title.createChild("p", {content: "Select an assessment to get started"})
@@ -255,21 +255,21 @@ class MenuView extends GridLayout {
             events: {
                 "access-click": (e) => onSelectAssessment(e, assessmentIndex[0].id)
             }
-        }), 1, [2, 4])
+        }), [3,4], [2, 4])
 
         const p2 = this.add(new NociButton({
             displayValue: assessmentIndex[1].title,
             events: {
                 "access-click": (e) => onSelectAssessment(e, assessmentIndex[1].id)
             }
-        }), 1, [5, 7]);
+        }), [3,4], [5, 7]);
 
         const p3 = this.add(new NociButton({
             displayValue: assessmentIndex[2].title,
             events: {
                 "access-click": (e) => onSelectAssessment(e, assessmentIndex[2].id)
             }
-        }), 2, [2, 4]);
+        }), [5,6], [2, 4]);
 
     }
 }
